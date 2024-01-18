@@ -18,7 +18,7 @@ def scrap_employee_list(id, pwd):
 
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-    # 로그인
+    # Login
     try:
         driver.get(BASE_DOMAIN)
         input_id = driver.find_element(By.ID, 'login_id')
@@ -37,7 +37,7 @@ def scrap_employee_list(id, pwd):
 
         return employee_list
 
-    # 로그인 실패
+    # Login Fail
     except UnexpectedAlertPresentException:
         return []
 

@@ -1,2 +1,4 @@
 selenium==3.9.0
 webdriver_manager==4.0.1
+pydantic
+fastapi==0.100.1

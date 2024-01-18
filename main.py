@@ -1,7 +1,9 @@
 from fastapi import FastAPI, BackgroundTasks, status
 from fastapi.middleware.cors import CORSMiddleware
 import crawler
-
+from model.Input import Input
+from model.Employee import Employee
+from typing import List
 
 app = FastAPI()
 
@@ -19,6 +21,6 @@ def root():
     return "Welcome!"
 
 
-@app.post("/employee/")
-async def get_employee_list(id: str, pwd: str):
-    return crawler.scrap_employee_list(id, pwd)
+@app.post("/employee")
+def get_employee_list(i: Input) -> list[Employee]:
+    return crawler.scrap_employee_list(i.id, i.password)

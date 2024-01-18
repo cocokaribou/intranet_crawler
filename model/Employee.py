@@ -1,10 +1,12 @@
-class Employee:
-    def __init__(self, idx, id, name, position, department):
-        self.idx = idx
-        self.id = id
-        self.name = name
-        self.position = position
-        self.department = department
+from pydantic import BaseModel
+
+
+class Employee(BaseModel):
+    idx: int
+    id: str
+    name: str
+    position: str
+    department: str
 
     @classmethod
     def from_string(cls, string):
