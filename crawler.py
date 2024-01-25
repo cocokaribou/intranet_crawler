@@ -1,45 +1,63 @@
-from selenium import webdriver
+from selenium.common.exceptions import *
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import *
-from selenium.webdriver.chrome.service import Service
-from model.Employee import Employee
+
+from browser import Browser
+from models import Employee, Input
 
 BASE_DOMAIN = "http://world.pionnet.co.kr:8096"
 
 
-def scrap_employee_list(id, pwd):
-    options = webdriver.ChromeOptions()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
+class Crawler:
+    browser = Browser(BASE_DOMAIN)
 
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    # 로그인
+    def login(self, usr_input: Input):
+        # 세션 쿠키를 먼저 지운다.
+        self.browser.delete_cookies("PION_JSESSIONID")
+        self.browser.refresh()
+        try:
+            input_id = self.browser.find_single(value='login_id')
+            if not input_id:
+                return {"msg": "already login"}
 
-    # Login
-    try:
-        driver.get(BASE_DOMAIN)
-        input_id = driver.find_element(By.ID, 'login_id')
-        input_id.send_keys(id)
-        input_pw = driver.find_element(By.ID, 'password')
-        input_pw.send_keys(pwd)
-        input_pw.send_keys(Keys.ENTER)
+            input_id.send_keys(usr_input.id)
 
-        # 직원조회
-        driver.execute_script(f"window.location.href='{BASE_DOMAIN}/employee/employeeMgmt.do?method"
-                              "=selectEmployeeList&rowsPerPage=300&job_code=&param_team_name=&param_team_id=&enter_yn=Y"
-                              "&param_emp_name=&'")
+            input_pw = self.browser.find_single(value='password')
+            input_pw.send_keys(usr_input.password)
+            input_pw.send_keys(Keys.ENTER)
 
-        employee_list = list(map(lambda x: Employee.from_string(x.text),
-                                 driver.find_elements(By.TAG_NAME, 'table')[5].find_elements(By.TAG_NAME, 'tr')[1:]))
+            return {"msg": "success"}
 
-        return employee_list
+        except UnexpectedAlertPresentException:
+            return {"msg": "fail"}
 
-    # Login Fail
-    except UnexpectedAlertPresentException:
-        return []
+    # 직원조회
+    def scrap_employee_list(self) -> list[Employee]:
+        try:
+            self.browser.execute_script(
+                f"window.location.href='{BASE_DOMAIN}"
+                + "/employee/employeeMgmt.do?method=selectEmployeeList&rowsPerPage=300'")
 
-    finally:
-        driver.quit()
+            self.browser.implicitly_wait(1)
+            return list(map(lambda x: Employee.from_string(x.text),
+                            self.browser.find_multiple(By.TAG_NAME, 'table')[5].find_elements(By.TAG_NAME, 'tr')[1:]))
+
+        except Exception:
+            return list()
+
+    # 로그아웃 후 백그라운드 브라우저 종료
+    def logout(self):
+        try:
+            self.browser.switch_frame(frame_id="frame_main_top")
+            self.browser.execute_script("fn_logout()")
+
+            input_id = self.browser.find_single(value='login_id')
+
+            if input_id:
+                return {"msg": "success"}
+            else:
+                return {"msg": "fail"}
+
+        except NoSuchFrameException:
+            return {"msg": "already logout"}

@@ -1,9 +1,10 @@
-from fastapi import FastAPI, BackgroundTasks, status
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import crawler
-from model.Input import Input
-from model.Employee import Employee
-from typing import List
+
+from models import Input, Employee
+from crawler import Crawler
+
+# end point api
 
 app = FastAPI()
 
@@ -15,12 +16,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+crawler = Crawler()
+
 
 @app.get("/")
 def root():
     return "Welcome!"
 
 
+@app.get("/test")
+def test():
+    return "test"
+
+
+@app.post("/login")
+def login(i: Input):
+    return crawler.login(i)
+
+
+@app.post("/logout")
+def logout():
+    return crawler.logout()
+
+
 @app.post("/employee")
-def get_employee_list(i: Input) -> list[Employee]:
-    return crawler.scrap_employee_list(i.id, i.password)
+def get_employee_list() -> list[Employee]:
+    return crawler.scrap_employee_list()

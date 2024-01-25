@@ -1,6 +1,11 @@
 from pydantic import BaseModel
 
 
+class Input(BaseModel):
+    id: str
+    password: str
+
+
 class Employee(BaseModel):
     idx: int
     id: str
