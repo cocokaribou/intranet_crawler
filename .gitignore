@@ -2,3 +2,5 @@ venv/
 __pycache__/
 model/__pycache__/
 .idea/
+google-chrome-stable_current_amd64.deb
+google-chrome-stable-110.0.5481.177-1.x86_64.rpm
