@@ -37,9 +37,8 @@ class Crawler:
         try:
             self.browser.execute_script(
                 f"window.location.href='{BASE_DOMAIN}"
-                + "/employee/employeeMgmt.do?method=selectEmployeeList&rowsPerPage=300'")
+                + "/employee/employeeMgmt.do?method=selectEmployeeList&rowsPerPage=300&enter_yn=Y'")
 
-            self.browser.implicitly_wait(1)
             return list(map(lambda x: Employee.from_string(x.text),
                             self.browser.find_multiple(By.TAG_NAME, 'table')[5].find_elements(By.TAG_NAME, 'tr')[1:]))
 
