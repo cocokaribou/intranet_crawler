@@ -14,7 +14,9 @@ class Crawler:
     # 로그인
     def login(self, usr_input: Input) -> LoginResult:
         # 로그아웃부터 시켜준다
-        self.browser.logout()
+        if self.browser.is_at_main():
+            self.browser.logout()
+
         try:
             input_id = self.browser.find_single(value='login_id')
             input_id.send_keys(usr_input.id)

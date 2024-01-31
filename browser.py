@@ -81,9 +81,11 @@ class Browser:
 
     # 로그아웃: 세션 쿠키 지우고 새로고침
     def logout(self):
-        self.delete_cookies("PION_JSESSIONID")
-        self.driver.get(self.base_domain)
-        self.dismiss_alert()
+        try:
+            self.delete_cookies("PION_JSESSIONID")
+            self.driver.get(self.base_domain)
+        except UnexpectedAlertPresentException:
+            self.dismiss_alert()
 
     def dismiss_alert(self):
         try:
