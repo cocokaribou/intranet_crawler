@@ -26,7 +26,7 @@ class Crawler:
             input_pw.send_keys(Keys.ENTER)
 
             if self.browser.is_at_main():
-                return LoginResult(code=1000)
+                return LoginResult(code=1000, msg="로그인 성공!")
             else:
                 return LoginResult(code=9999, msg="로그인 실패!")
 
@@ -54,7 +54,7 @@ class Crawler:
             input_id = self.browser.find_single(value='login_id')
 
             if input_id:
-                return LoginResult(code=1000)
+                return LoginResult(code=1000, msg="로그아웃 성공!")
             else:
                 return LoginResult(code=9999, msg="로그아웃 실패!")
 
