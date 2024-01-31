@@ -2,6 +2,7 @@ from selenium import webdriver
 from selenium.common.exceptions import *
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from starlette.datastructures import URL
 from webdriver_manager.chrome import ChromeDriverManager
 
 
@@ -9,11 +10,13 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 class Browser:
     def __init__(self, base_domain):
+        self.base_domain = base_domain
+
         options = webdriver.ChromeOptions()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
 
-        self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+        self.driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
 
         self.driver.get(base_domain)
         self.driver.implicitly_wait(5)
@@ -75,6 +78,22 @@ class Browser:
 
     def refresh(self):
         self.driver.get(self.current_url)
+
+    # 로그아웃: 세션 쿠키 지우고 새로고침
+    def logout(self):
+        self.delete_cookies("PION_JSESSIONID")
+        self.driver.get(self.base_domain)
+        self.dismiss_alert()
+
+    def dismiss_alert(self):
+        try:
+            self.driver.switch_to.alert.dismiss()
+        except NoAlertPresentException:
+            return
+
+    def is_at_main(self) -> bool:
+        url = URL(self.current_url)
+        return url.path == "/main/Main.do"
 
     def quit(self):
         self.driver.quit()

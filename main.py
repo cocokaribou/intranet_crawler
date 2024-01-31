@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 
 from models import Input, Employee
 from crawler import Crawler
@@ -15,6 +16,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title="Intranet Crawler",
+        version="1.0.0",
+        summary="파이언넷 인트라넷을 크롬드라이버로 크롤링하는 API입니다.",
+        routes=app.routes,
+        servers=[{"url": "http://13.209.23.94:8000"}]
+    )
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 crawler = Crawler()
 

@@ -3,7 +3,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 
 from browser import Browser
-from models import Employee, Input
+from models import Employee, Input, LoginResult
 
 BASE_DOMAIN = "http://world.pionnet.co.kr:8096"
 
@@ -12,25 +12,24 @@ class Crawler:
     browser = Browser(BASE_DOMAIN)
 
     # 로그인
-    def login(self, usr_input: Input):
-        # 세션 쿠키를 먼저 지운다.
-        self.browser.delete_cookies("PION_JSESSIONID")
-        self.browser.refresh()
+    def login(self, usr_input: Input) -> LoginResult:
+        # 로그아웃부터 시켜준다
+        self.browser.logout()
         try:
             input_id = self.browser.find_single(value='login_id')
-            if not input_id:
-                return {"msg": "already login"}
-
             input_id.send_keys(usr_input.id)
 
             input_pw = self.browser.find_single(value='password')
             input_pw.send_keys(usr_input.password)
             input_pw.send_keys(Keys.ENTER)
 
-            return {"msg": "success"}
+            if self.browser.is_at_main():
+                return LoginResult(code=1000)
+            else:
+                return LoginResult(code=9999, msg="로그인 실패!")
 
-        except UnexpectedAlertPresentException:
-            return {"msg": "fail"}
+        except UnexpectedAlertPresentException as e:
+            return LoginResult(code=9999, msg=e.alert_text)
 
     # 직원조회
     def scrap_employee_list(self) -> list[Employee]:
@@ -46,17 +45,16 @@ class Crawler:
             return list()
 
     # 로그아웃 후 백그라운드 브라우저 종료
-    def logout(self):
+    def logout(self) -> LoginResult:
         try:
-            self.browser.switch_frame(frame_id="frame_main_top")
-            self.browser.execute_script("fn_logout()")
+            self.browser.logout()
 
             input_id = self.browser.find_single(value='login_id')
 
             if input_id:
-                return {"msg": "success"}
+                return LoginResult(code=1000)
             else:
-                return {"msg": "fail"}
+                return LoginResult(code=9999, msg="로그아웃 실패!")
 
-        except NoSuchFrameException:
-            return {"msg": "already logout"}
+        except Exception as e:
+            return LoginResult(code=9999, msg=e)

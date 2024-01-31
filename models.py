@@ -23,3 +23,11 @@ class Employee(BaseModel):
             position=parts[5],
             department=parts[13]
         )
+
+
+class LoginResult(BaseModel):
+    # 성공 1000 / 실패 9999
+    code: int
+
+    # 성공할 경우 빈 메세지
+    msg: str = ""
