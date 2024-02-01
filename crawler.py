@@ -12,7 +12,7 @@ class Crawler:
     browser = Browser(BASE_DOMAIN)
 
     # 로그인
-    def login(self, usr_input: Input) -> LoginResult:
+    def login(self, usr_input: Input):
         # 로그아웃부터 시켜준다
         self.browser.logout()
 
@@ -46,7 +46,7 @@ class Crawler:
             return list()
 
     # 로그아웃 후 백그라운드 브라우저 종료
-    def logout(self) -> LoginResult:
+    def logout(self):
         try:
             self.browser.logout()
 
