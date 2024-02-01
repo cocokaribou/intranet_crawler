@@ -39,7 +39,8 @@ class Crawler:
                 f"window.location.href='{BASE_DOMAIN}"
                 + "/employee/employeeMgmt.do?method=selectEmployeeList&rowsPerPage=300&enter_yn=Y'")
 
-            return list(map(lambda x: Employee.from_string(x.text),
+            return list(map(lambda x: Employee.init(image=x.find_element(By.TAG_NAME, 'img').get_attribute('src'),
+                                                    input_string=x.text),
                             self.browser.find_multiple(By.TAG_NAME, 'table')[5].find_elements(By.TAG_NAME, 'tr')[1:]))
 
         except Exception:

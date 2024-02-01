@@ -7,6 +7,7 @@ class Input(BaseModel):
 
 
 class Employee(BaseModel):
+    image: str
     idx: int
     id: str
     name: str
@@ -14,9 +15,10 @@ class Employee(BaseModel):
     department: str
 
     @classmethod
-    def from_string(cls, string):
-        parts = string.split()
+    def init(cls, image: str, input_string):
+        parts = input_string.split()
         return cls(
+            image=image,
             idx=parts[0],
             name=parts[1],
             id=parts[3],
