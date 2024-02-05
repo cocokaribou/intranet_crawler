@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi.responses import FileResponse
@@ -28,12 +28,8 @@ def custom_openapi():
     openapi_schema = get_openapi(
         title="Intranet Crawler",
         version="1.0.0",
-        summary="파이언넷 인트라넷을 크롬드라이버로 크롤링하는 API입니다.",
-        routes=app.routes,
-        servers=[
-            {"description": "원격", "url": "http://13.209.23.94:8000"},
-            {"description": "로컬", "url": "http://127.0.0.1:8000"}
-        ]
+        description="파이언넷 인트라넷을 크롬드라이버로 크롤링하는 API입니다.<br><br>원격서버: http://13.209.23.94:8000",
+        routes=app.routes
     )
     app.openapi_schema = openapi_schema
     return app.openapi_schema
@@ -88,6 +84,16 @@ async def logout():
           response_description="채팅에 필요한 직원정보 목록")
 async def get_employee_list():
     return crawler.scrap_employee_list()
+
+
+@app.post("/my-info",
+          tags=["POST"],
+          summary="로그인된 유저정보 크롤링 (로그인 세션 유지해야 함)",
+          response_model=Employee,
+          description="인트라넷 로그인한 유저 정보를 가져옵니다.<br>로그아웃 상태엔 빈 값 리턴.",
+          response_description="마이페이지 정보")
+async def get_my_info():
+    return crawler.scrap_my_information()
 
 
 @app.get("/image",

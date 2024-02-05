@@ -70,6 +70,17 @@ class Browser:
     def switch_frame(self, frame_id: str):
         self.driver.switch_to.frame(frame_id)
 
+    def get_cookies(self):
+        return self.driver.get_cookies()
+
+    def get_cookie(self, cookie_name: str = ""):
+        if cookie_name:
+            return self.driver.get_cookie(cookie_name)["value"]
+
+    def add_cookie(self, cookie_key: str = "", cookie_val: str = ""):
+        if cookie_key:
+            self.driver.add_cookie({"name": cookie_key, "value": cookie_val})
+
     def delete_cookies(self, cookie_name: str = ""):
         if cookie_name:
             self.driver.delete_cookie(cookie_name)
