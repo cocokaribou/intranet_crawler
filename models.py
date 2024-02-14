@@ -5,13 +5,13 @@ class Input(BaseModel):
     id: str
     password: str
 
-    # 테스트시 기입
+    # default value for open api document
     model_config = {
         "json_schema_extra": {
-            "examples" : [
+            "examples": [
                 {
-                    "id" : "",
-                    "password" : ""
+                    "id": "",
+                    "password": ""
                 }
             ]
         }
@@ -40,8 +40,8 @@ class Employee(BaseModel):
 
 
 class LoginResult(BaseModel):
-    # 성공 1000 / 실패 9999
+    # success 1000 / fail 9999
     code: int
 
-    # 성공할 경우 빈 메세지
+    # empty when the result is success
     msg: str = ""
