@@ -1,12 +1,8 @@
 from selenium import webdriver
 from selenium.common.exceptions import *
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
 from starlette.datastructures import URL
 from webdriver_manager.chrome import ChromeDriverManager
 
-
-# chrome driver browser
 
 class Browser:
     def __init__(self, base_domain):
@@ -15,11 +11,23 @@ class Browser:
         options = webdriver.ChromeOptions()
         options.add_argument("--headless")
         options.add_argument("--no-sandbox")
+        options.add_argument("--start-maximized")
+        options.add_argument("--window-size=1200x600")
+        options.add_argument(
+            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/91.0.4472.124 Safari/537.36")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--log-level=3")  # 3 is for INFO level
+        options.add_argument("--disable-dev-shm-usage")  # Disable /dev/shm usage
+        options.add_argument("--disable-cache")
 
         self.driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
 
         self.driver.get(base_domain)
-        self.driver.implicitly_wait(5)
+        self.driver.implicitly_wait(1)
+
+    def __enter__(self):
+        return self
 
     @property
     def current_url(self):
@@ -28,16 +36,15 @@ class Browser:
     def implicitly_wait(self, t):
         self.driver.implicitly_wait(t)
 
-    # default : find_element_by_id
-    def find_single(self, value, selector=By.ID):
+    def find_element(self, by, value):
         try:
-            return self.driver.find_element(selector, value)
+            return self.driver.find_element(by, value)
         except NoSuchElementException:
             return None
 
-    def find_multiple(self, selector, id):
+    def find_multiple(self, by, value):
         try:
-            return self.driver.find_elements(selector, id)
+            return self.driver.find_elements(by, value)
         except NoSuchElementException:
             return None
 
@@ -90,14 +97,6 @@ class Browser:
     def refresh(self):
         self.driver.get(self.current_url)
 
-    # 로그아웃: 세션 쿠키 지우고 새로고침
-    def logout(self):
-        try:
-            self.delete_cookies("PION_JSESSIONID")
-            self.driver.get(self.base_domain)
-        except UnexpectedAlertPresentException:
-            self.dismiss_alert()
-
     def dismiss_alert(self):
         try:
             self.driver.switch_to.alert.dismiss()
@@ -111,7 +110,7 @@ class Browser:
     def quit(self):
         self.driver.quit()
 
-    def __del__(self):
+    def __exit__(self, exc_type, exc_value, traceback):
         try:
             self.driver.quit()
         except Exception:
