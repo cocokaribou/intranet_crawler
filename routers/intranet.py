@@ -1,30 +1,30 @@
-from fastapi import APIRouter, Request
-from crawler import Crawler
+from fastapi import APIRouter, Request, Depends
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from typing_extensions import Annotated
+import crawler
 from models import LoginResult, Input, Employee
 from typing import List
 
 router = APIRouter(
     tags=["POST"]
 )
-crawler = Crawler()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 
 @router.post("/login",
              summary="Intranet login",
-             response_model=LoginResult,
-             description="Login to the intranet using an internal Chrome browser.",
-             response_description="success: `\"code\":1000` fail: `\"code\":9999`")
-async def login(i: Input, request: Request):
-    return crawler.login(i)
+             description="Login to the intranet using an internal Chrome browser.")
+async def login(form: Annotated[OAuth2PasswordRequestForm, Depends()]):
+    access_token = crawler.login(form.username, form.password)
+    return {"access_token": f"{access_token}", "token_type": "bearer"}
 
 
-@router.post("/logout",
-             summary="Intranet logout",
-             response_model=LoginResult,
-             description="Logout from the intranet by deleting session cookies.",
-             response_description="success: `\"code\":1000` fail: `\"code\":9999`")
-async def logout():
-    return crawler.logout()
+# @router.post("/logout",
+#              summary="Intranet logout",
+#              description="Logout from the intranet by deleting session cookies.")
+# async def logout():
+#     return crawler.logout()
 
 
 @router.post("/employee",
@@ -32,8 +32,8 @@ async def logout():
              response_model=List[Employee],
              description="Get the employee list from the intranet.<br>"
                          "Returns an empty list when the user is not logged in.")
-async def get_employee_list():
-    return crawler.scrap_employee_list()
+async def get_employee_list(token: str = Depends(oauth2_scheme)):
+    return crawler.scrap_employee_list(token)
 
 
 @router.post("/my-info",
@@ -41,5 +41,5 @@ async def get_employee_list():
              response_model=Employee,
              description="Get the user information of the currently logged-in user.<br>"
                          "Returns empty information when the user is not logged in.")
-async def get_my_info():
-    return crawler.scrap_my_information()
+async def get_my_info(token: str = Depends(oauth2_scheme)):
+    return crawler.scrap_my_information(token)

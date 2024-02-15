@@ -1,8 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
-from fastapi.responses import FileResponse
-from pathlib import Path
 
 from routers.intranet import router as intranet_router
 
@@ -32,6 +30,7 @@ def custom_openapi():
         description="Endpoint APIs for getting web scrapped data from the intranet",
         routes=app.routes
     )
+    openapi_schema["paths"]["/login"] = {}  # use authorize feature of open api doc instead
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 

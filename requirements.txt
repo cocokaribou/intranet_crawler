@@ -3,3 +3,4 @@ webdriver_manager==4.0.1
 pydantic
 fastapi==0.100.1
 uvicorn==0.15.0
+python-multipart

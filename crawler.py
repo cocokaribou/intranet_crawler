@@ -6,91 +6,73 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 from browser import Browser
-from models import Employee, Input, LoginResult
+from models import Employee
 from config.intranet_config import BASE_DOMAIN, SESSION_COOKIE_KEY
 
 
-class Crawler:
-    session_cookie = ""
+def login(usr_id, usr_pwd) -> str:
+    with Browser(BASE_DOMAIN) as browser:
+        try:
+            input_id = WebDriverWait(browser, 1).until(
+                EC.presence_of_element_located((By.ID, 'login_id'))
+            )
+            input_id.send_keys(usr_id)
 
-    '''
-    login
-    '''
-    def login(self, usr_input: Input) -> LoginResult:
-        with Browser(BASE_DOMAIN) as browser:
-            try:
-                input_id = WebDriverWait(browser, 1).until(
-                    EC.presence_of_element_located((By.ID, 'login_id'))
-                )
-                input_id.send_keys(usr_input.id)
+            input_pw = WebDriverWait(browser, 1).until(
+                EC.presence_of_element_located((By.ID, 'password'))
+            )
+            input_pw.send_keys(usr_pwd)
+            input_pw.send_keys(Keys.ENTER)
 
-                input_pw = WebDriverWait(browser, 1).until(
-                    EC.presence_of_element_located((By.ID, 'password'))
-                )
-                input_pw.send_keys(usr_input.password)
-                input_pw.send_keys(Keys.ENTER)
+            if browser.is_at_main():
+                session_cookie = browser.get_cookie(SESSION_COOKIE_KEY)
 
-                if browser.is_at_main():
-                    self.session_cookie = browser.get_cookie(SESSION_COOKIE_KEY)
-                    return LoginResult(code=1000, msg="login success!")
+            else:
+                session_cookie = ""
 
-                else:
-                    self.session_cookie = ""
-                    return LoginResult(code=9999, msg="login fail!")
+        except UnexpectedAlertPresentException as e:
+            session_cookie = ""
 
-            except UnexpectedAlertPresentException as e:
-                self.session_cookie = ""
-                return LoginResult(code=9999, msg=e.alert_text)
+        finally:
+            return session_cookie
 
-    '''
-    get user info list
-    '''
-    def scrap_employee_list(self) -> list[Employee]:
-        with Browser(BASE_DOMAIN) as browser:
-            browser.add_cookie(SESSION_COOKIE_KEY, self.session_cookie)
 
-            try:
-                browser.execute_script(
-                    f"window.location.href='{BASE_DOMAIN}"
-                    + "/employee/employeeMgmt.do?method=selectEmployeeList&rowsPerPage=300&enter_yn=Y'")
+def scrap_employee_list(token) -> list[Employee]:
+    with Browser(BASE_DOMAIN) as browser:
+        browser.add_cookie(SESSION_COOKIE_KEY, token)
 
-                return list(
-                    map(lambda x: Employee.init_from_list(image=x.find_element(By.TAG_NAME, 'img').get_attribute('src'),
-                                                          input_string=x.text),
-                        browser.find_multiple(By.TAG_NAME, 'table')[5].find_elements(By.TAG_NAME, 'tr')[1:]))
+        try:
+            browser.execute_script(
+                f"window.location.href='{BASE_DOMAIN}"
+                + "/employee/employeeMgmt.do?method=selectEmployeeList&rowsPerPage=300&enter_yn=Y'")
 
-            except Exception:
-                return list()
+            return list(
+                map(lambda x: Employee.init_from_list(image=x.find_element(By.TAG_NAME, 'img').get_attribute('src'),
+                                                      input_string=x.text),
+                    browser.find_multiple(By.TAG_NAME, 'table')[5].find_elements(By.TAG_NAME, 'tr')[1:]))
 
-    '''
-    get my info
-    '''
-    def scrap_my_information(self) -> Employee:
-        with Browser(BASE_DOMAIN) as browser:
-            browser.add_cookie(SESSION_COOKIE_KEY, self.session_cookie)
+        except Exception:
+            return list()
 
-            try:
-                browser.execute_script(
-                    f"window.location.href='{BASE_DOMAIN}"
-                    + "/employee/employeeMgmt.do?method=modifyNewEmployee'")
 
-                table = browser.find_multiple(By.TAG_NAME, 'table')[1]
-                return Employee(
-                    id=(lambda x: x.get_attribute("value"))(table.find_elements(By.TAG_NAME, 'input')[0]),
-                    idx=(lambda x: x.get_attribute("value"))(table.find_elements(By.TAG_NAME, 'input')[3]),
-                    name=(lambda x: x.get_attribute("value"))(table.find_elements(By.TAG_NAME, 'input')[4]),
-                    department=(lambda x: x.get_attribute("value"))(table.find_elements(By.TAG_NAME, 'input')[13]),
-                    image=(lambda x: x.get_attribute("src"))(table.find_elements(By.TAG_NAME, 'img')[1]),
-                    position=(lambda x: Select(x).first_selected_option.text)(table.find_element(By.TAG_NAME, "select"))
-                )
+def scrap_my_information(token) -> Employee:
+    with Browser(BASE_DOMAIN) as browser:
+        browser.add_cookie(SESSION_COOKIE_KEY, token)
 
-            except Exception:
-                return Employee()
+        try:
+            browser.execute_script(
+                f"window.location.href='{BASE_DOMAIN}"
+                + "/employee/employeeMgmt.do?method=modifyNewEmployee'")
 
-    '''
-    logout by deleting session cookie
-    '''
-    def logout(self) -> LoginResult:
-        self.session_cookie = ""
-        return LoginResult(code=1000, msg="logout success!")
+            table = browser.find_multiple(By.TAG_NAME, 'table')[1]
+            return Employee(
+                id=(lambda x: x.get_attribute("value"))(table.find_elements(By.TAG_NAME, 'input')[0]),
+                idx=(lambda x: x.get_attribute("value"))(table.find_elements(By.TAG_NAME, 'input')[3]),
+                name=(lambda x: x.get_attribute("value"))(table.find_elements(By.TAG_NAME, 'input')[4]),
+                department=(lambda x: x.get_attribute("value"))(table.find_elements(By.TAG_NAME, 'input')[13]),
+                image=(lambda x: x.get_attribute("src"))(table.find_elements(By.TAG_NAME, 'img')[1]),
+                position=(lambda x: Select(x).first_selected_option.text)(table.find_element(By.TAG_NAME, "select"))
+            )
 
+        except Exception:
+            return Employee()
