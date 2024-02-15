@@ -4,3 +4,5 @@ pydantic
 fastapi==0.100.1
 uvicorn==0.15.0
 python-multipart
+beautifulsoup4
+numpy

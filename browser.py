@@ -5,21 +5,24 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 
 class Browser:
-    def __init__(self, base_domain):
+    def __init__(self, base_domain, showScreen: bool = False):
         self.base_domain = base_domain
 
         options = webdriver.ChromeOptions()
-        options.add_argument("--headless")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--start-maximized")
-        options.add_argument("--window-size=1200x600")
-        options.add_argument(
-            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/91.0.4472.124 Safari/537.36")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--log-level=3")  # 3 is for INFO level
-        options.add_argument("--disable-dev-shm-usage")  # Disable /dev/shm usage
-        options.add_argument("--disable-cache")
+
+        if not showScreen:
+            # disable chrome options to see chrome UI
+            options.add_argument("--headless")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--start-maximized")
+            options.add_argument("--window-size=1200x600")
+            options.add_argument(
+                "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/91.0.4472.124 Safari/537.36")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--log-level=3")  # 3 is for INFO level
+            options.add_argument("--disable-dev-shm-usage")  # Disable /dev/shm usage
+            options.add_argument("--disable-cache")
 
         self.driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
 
@@ -94,6 +97,9 @@ class Browser:
         else:
             self.driver.delete_all_cookies()
 
+    def load(self, url):
+        self.driver.get(url)
+
     def refresh(self):
         self.driver.get(self.current_url)
 
@@ -106,6 +112,9 @@ class Browser:
     def is_at_main(self) -> bool:
         url = URL(self.current_url)
         return url.path == "/main/Main.do"
+
+    def page_source(self):
+        return self.driver.page_source
 
     def quit(self):
         self.driver.quit()

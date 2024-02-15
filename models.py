@@ -45,3 +45,14 @@ class LoginResult(BaseModel):
 
     # empty when the result is success
     msg: str = ""
+
+
+class Resource(BaseModel):
+    isBooked: str
+    isMine: bool
+
+
+resource_type = {
+    "남자휴게실": 10,
+    "여자휴게실": 20
+}
