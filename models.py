@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+import json
 
 
 class Input(BaseModel):
@@ -26,17 +27,8 @@ class Employee(BaseModel):
     position: str = ""
     department: str = ""
 
-    @classmethod
-    def init_from_list(cls, image: str, input_string):
-        parts = input_string.split()
-        return cls(
-            image=image,
-            idx=parts[0],
-            name=parts[1],
-            id=parts[3],
-            position=parts[5],
-            department=parts[13]
-        )
+    def toJSON(self):
+        return self.__dict__
 
 
 class LoginResult(BaseModel):

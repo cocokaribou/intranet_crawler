@@ -1,8 +1,10 @@
-from fastapi import APIRouter, Request, Depends
+from fastapi import APIRouter, Depends, Request
+from fastapi.params import Path
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing_extensions import Annotated
-import crawler
-from models import Employee, Resource, Input
+import crawler as crawler
+import fb
+from models import Employee, Resource
 from typing import List
 
 router = APIRouter()
@@ -18,22 +20,32 @@ async def login(form: Annotated[OAuth2PasswordRequestForm, Depends()]):
     access_token = crawler.login(form.username, form.password)
     return {"access_token": f"{access_token}", "token_type": "bearer"}
 
+
 @router.post("/user/list",
              summary="Intranet employee list",
              tags=["User"],
              response_model=List[Employee],
              description="Get the employee list from the intranet.")
 async def get_employee_list(token: str = Depends(oauth2_scheme)):
-    return crawler.scrap_employee_list(token)
+    return fb.get_intranet_user()
 
 
 @router.post("/user/my",
-             summary="Intranet my information",
+             summary="Intranet my employee number",
+             tags=["User"],
+             response_model=int,
+             description="Get the user information of the currently logged-in user.")
+async def get_my_employee_number(token: str = Depends(oauth2_scheme)):
+    return crawler.scrap_my_employee_number(token)
+
+
+@router.post("/user/{index}",
+             summary="Intranet single employee",
              tags=["User"],
              response_model=Employee,
-             description="Get the user information of the currently logged-in user.")
-async def get_my_info(token: str = Depends(oauth2_scheme)):
-    return crawler.scrap_my_information(token)
+             description="Get the single employee information.")
+async def get_employee(index: int, request: Request, token: str = Depends(oauth2_scheme)):
+    return fb.get_intranet_user(index)
 
 
 @router.post("/resource/list",
