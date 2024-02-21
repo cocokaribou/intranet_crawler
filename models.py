@@ -29,4 +29,5 @@ class ResourceResultCode(str, Enum):
     EMPTY_LIST = "예약할 시간을 선택해주세요."
     OVER_THREE = "한 번에 30분까지 선택할 수 있습니다."
     OVER_SIX = "하루에 1시간까지 선택할 수 있습니다."
+    WRONG_GENDER = "휴게실 성별이 다릅니다."
     ERROR = "오류가 생겼습니다. 다시 시도해주세요."

@@ -117,7 +117,7 @@ def scrap_booked_resources(token: str, type: int):
                     isBooked=row.get('value', ''),
                     isMine=row.get('value', '') == "Y" and row.get('onclick', '') != "return false;"
                 )
-                for row in rows[1:]
+                for row in rows
             ]
 
             # split result list into 11 chunks (8,9,10...17,18)
@@ -135,6 +135,10 @@ def scrap_booked_resources(token: str, type: int):
     :return: [ResourceBookResult] code
 """
 def book_resources(token: str, type: int, selected_blocks: list[int]) -> ResourceResultCode:
+    # prevent index out of range exception
+    selected_blocks = [index for index in selected_blocks if 66 > index >= 0]
+
+    print(selected_blocks)
     if len(selected_blocks) == 0:
         return ResourceResultCode.EMPTY_LIST
 
@@ -158,15 +162,16 @@ def book_resources(token: str, type: int, selected_blocks: list[int]) -> Resourc
 
             rows = browser.find_multiple(By.NAME, 'work_date_0_status')
 
-            # prevent overbooking (6 blocks per day)
-            my_booked_list = [row for row in rows if row.get_attribute('value') == 'Y' and row.get_attribute('onclick') != 'return false;']
-            if len(my_booked_list) > 6:
-                return ResourceResultCode.OVER_SIX
-
             # click available time blocks
             for i in selected_blocks:
                 if rows[i].get_attribute('onclick') != 'return false;':
                     rows[i].click()
+
+            # prevent overbooking (6 blocks per day)
+            my_booked_list = [row for row in rows if row.get_attribute('value') == 'Y' and row.get_attribute('onclick') != 'return false;']
+            print(len(my_booked_list))
+            if len(my_booked_list) >= 6:
+                return ResourceResultCode.OVER_SIX
 
             # save changes
             save_button = WebDriverWait(browser, 1).until(
@@ -177,13 +182,18 @@ def book_resources(token: str, type: int, selected_blocks: list[int]) -> Resourc
             if browser.alert_text() == "저장하시겠습니까?":
                 browser.confirm_alert()
 
+            # check result alert
             time.sleep(0.5)
+            if browser.alert_text() == "Wrong Gender !! ":
+                browser.confirm_alert()
+                return ResourceResultCode.WRONG_GENDER
+
             if browser.alert_text() == "처리되었습니다.":
                 browser.confirm_alert()
-
+                
             return ResourceResultCode.SUCCESS
 
-        except UnexpectedAlertPresentException as e:
+        except Exception as e:
             print(e)
             return ResourceResultCode.ERROR
 
