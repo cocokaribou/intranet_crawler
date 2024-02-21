@@ -54,7 +54,7 @@ async def get_employee(index: int, token: str = Depends(oauth2_scheme)):
              response_model=List[Employee],
              description="Get the booked resource list from the intranet."
              )
-async def get_booked_resource_list(type: ResourceType = Path(default=ResourceType.WOMEN, description="Men `10` Women `20`\n"),
+async def get_booked_resource_list(type: ResourceType = Path(description="Men `10` Women `20`\n"),
                                    token: str = Depends(oauth2_scheme)):
     return crawler.scrap_booked_resources(token, type)
 
@@ -64,7 +64,7 @@ async def get_booked_resource_list(type: ResourceType = Path(default=ResourceTyp
              description="Book resources from the intranet."
              )
 async def book_resource(selected_blocks: list[int],
-                        type: ResourceType = Path(default=ResourceType.WOMEN, description="Men `10` Women `20`\n"),
+                        type: ResourceType = Path(description="Men `10` Women `20`\n"),
                         token: str = Depends(oauth2_scheme)):
     code = crawler.book_resources(token, type, selected_blocks)
     if code == ResourceResultCode.SUCCESS:
