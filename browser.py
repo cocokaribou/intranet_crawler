@@ -103,9 +103,21 @@ class Browser:
     def refresh(self):
         self.driver.get(self.current_url)
 
+    def alert_text(self) -> str:
+        try:
+            return self.driver.switch_to.alert.text
+        except NoAlertPresentException:
+            return ""
+
     def dismiss_alert(self):
         try:
             self.driver.switch_to.alert.dismiss()
+        except NoAlertPresentException:
+            return
+
+    def confirm_alert(self):
+        try:
+            self.driver.switch_to.alert.accept()
         except NoAlertPresentException:
             return
 

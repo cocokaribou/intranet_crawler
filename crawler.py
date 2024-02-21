@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 import numpy as np
 
 from browser import Browser
-from models import Employee, Resource
+from models import Employee, Resource, ResourceResultCode
 from intranet_config import BASE_DOMAIN, SESSION_COOKIE_KEY, ID, PWD
 import fb
 
@@ -88,6 +88,10 @@ def scrap_my_employee_number(token: str) -> int:
             return -1
 
 
+"""
+    :param str token: session cookie value as a token
+    :param int type: Men `10` / Women `20`
+"""
 def scrap_booked_resources(token: str, type: int):
     with Browser(BASE_DOMAIN) as browser:
         browser.add_cookie(SESSION_COOKIE_KEY, token)
@@ -106,19 +110,17 @@ def scrap_booked_resources(token: str, type: int):
 
             # parse table content
             soup = BeautifulSoup(browser.page_source(), "html.parser")
-            rows = soup.find('table', attrs={'class': 'scrollTable'}).find('tbody').find_all('tr')
+            rows = soup.find_all('input', attrs={'name': 'work_date_0_status'})
 
-            result = []
-            for row in rows[1:]:
-                length = len(row.find_all('td'))
-                index = 4 if length == 9 else (3 if length == 8 else (2 if length == 7 else None))
+            result = [
+                Resource(
+                    isBooked=row.get('value', ''),
+                    isMine=row.get('value', '') == "Y" and row.get('onclick', '') != "return false;"
+                )
+                for row in rows[1:]
+            ]
 
-                block = row.find_all('td')[index].find('input', {'name': 'work_date_0_status'})
-                result.append(Resource(
-                    isBooked=block.get('value', ''),
-                    isMine=block.get('value', '') == "Y" and block.get('onclick', '') != "return false;"
-                ))
-
+            # split result list into 11 chunks (8,9,10...17,18)
             return [x.tolist() for x in np.array_split(result, 11)]
 
         except Exception as e:
@@ -127,8 +129,68 @@ def scrap_booked_resources(token: str, type: int):
 
 
 """
+    :param str token: session cookie value as a token
+    :param int type: Men `10` / Women `20`
+    :param list[int] selected_blocks: list of index of selected blocks. up to 3
+    :return: [ResourceBookResult] code
+"""
+def book_resources(token: str, type: int, selected_blocks: list[int]) -> ResourceResultCode:
+    if len(selected_blocks) == 0:
+        return ResourceResultCode.EMPTY_LIST
+
+    if len(selected_blocks) > 3:
+        return ResourceResultCode.OVER_THREE
+
+    with Browser(BASE_DOMAIN) as browser:
+        browser.add_cookie(SESSION_COOKIE_KEY, token)
+
+        today = datetime.today().strftime('%Y-%m-%d')
+        try:
+            # load timetable
+            browser.load(
+                f"{BASE_DOMAIN}/resource/viewResourceBookingList.do"
+                f"?method=searchResourceBookingList&srch_base_dt={today}&resrc_code_id={type}")
+            srch_button = WebDriverWait(browser, 1).until(
+                EC.presence_of_element_located((By.ID, 'srch_button_01'))
+            )
+            srch_button.click()
+            time.sleep(1)
+
+            rows = browser.find_multiple(By.NAME, 'work_date_0_status')
+
+            # prevent overbooking (6 blocks per day)
+            my_booked_list = [row for row in rows if row.get_attribute('value') == 'Y' and row.get_attribute('onclick') != 'return false;']
+            if len(my_booked_list) > 6:
+                return ResourceResultCode.OVER_SIX
+
+            # click available time blocks
+            for i in selected_blocks:
+                if rows[i].get_attribute('onclick') != 'return false;':
+                    rows[i].click()
+
+            # save changes
+            save_button = WebDriverWait(browser, 1).until(
+                EC.presence_of_element_located((By.ID, 'SaveBtn'))
+            )
+            save_button.click()
+            time.sleep(0.5)
+            if browser.alert_text() == "저장하시겠습니까?":
+                browser.confirm_alert()
+
+            time.sleep(0.5)
+            if browser.alert_text() == "처리되었습니다.":
+                browser.confirm_alert()
+
+            return ResourceResultCode.SUCCESS
+
+        except UnexpectedAlertPresentException as e:
+            print(e)
+            return ResourceResultCode.ERROR
+
+
+"""
     for testing out chrome browser crawling feature.
 """
 if __name__ == "__main__":
-    scrap_employee_list(login(ID, PWD))
-    # scrap_booked_resources(token, resource_type["여자휴게실"])
+    # scrap_employee_list(login(ID, PWD))
+    book_resources(login(ID, PWD), 20, [7, 8, 9])

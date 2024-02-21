@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Path
 from fastapi.params import Path
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing_extensions import Annotated
 import crawler as crawler
 import fb
-from models import Employee, Resource
+from models import Employee, ResourceType, ResourceResultCode
 from typing import List
+from enum import Enum
 
 router = APIRouter()
 
@@ -44,31 +45,34 @@ async def get_my_employee_number(token: str = Depends(oauth2_scheme)):
              tags=["User"],
              response_model=Employee,
              description="Get the single employee information.")
-async def get_employee(index: int, request: Request, token: str = Depends(oauth2_scheme)):
+async def get_employee(index: int, token: str = Depends(oauth2_scheme)):
     return fb.get_intranet_user(index)
 
 
-@router.post("/resource/list",
+@router.post("/resource/{type}/list",
              tags=["Resource"],
+             response_model=List[Employee],
              description="Get the booked resource list from the intranet."
              )
-async def get_booked_resource_list(type: int = 20,
+async def get_booked_resource_list(type: ResourceType = Path(default=ResourceType.WOMEN, description="Men `10` Women `20`\n"),
                                    token: str = Depends(oauth2_scheme)):
     return crawler.scrap_booked_resources(token, type)
 
 
-@router.post("/resource/my",
-             tags=["Resource"],
-             response_model=List[Resource],
-             description="Get my booked resource list from the intranet."
-             )
-async def get_my_booked_resource(token: str = Depends(oauth2_scheme)):
-    return []
-
-
-@router.post("/resource/book",
+@router.post("/resource/{type}/book",
              tags=["Resource"],
              description="Book resources from the intranet."
              )
-async def book_resource(token: str = Depends(oauth2_scheme)):
-    return "test"
+async def book_resource(selected_blocks: list[int],
+                        type: ResourceType = Path(default=ResourceType.WOMEN, description="Men `10` Women `20`\n"),
+                        token: str = Depends(oauth2_scheme)):
+    code = crawler.book_resources(token, type, selected_blocks)
+    if code == ResourceResultCode.SUCCESS:
+        return {
+            "message": code.value
+        }
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=code.value
+        )
