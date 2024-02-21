@@ -4,7 +4,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing_extensions import Annotated
 import crawler as crawler
 import fb
-from models import Employee, ResourceType, ResourceResultCode
+from models import Employee, Resource, ResourceType, ResourceResultCode
 from typing import List
 from enum import Enum
 
@@ -51,7 +51,7 @@ async def get_employee(index: int, token: str = Depends(oauth2_scheme)):
 
 @router.post("/resource/{type}/list",
              tags=["Resource"],
-             response_model=List[Employee],
+             response_model=List[Resource],
              description="Get the booked resource list from the intranet."
              )
 async def get_booked_resource_list(type: ResourceType = Path(description="Men `10` Women `20`\n"),
