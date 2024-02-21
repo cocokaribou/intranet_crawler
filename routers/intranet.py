@@ -51,7 +51,6 @@ async def get_employee(index: int, token: str = Depends(oauth2_scheme)):
 
 @router.post("/resource/{type}/list",
              tags=["Resource"],
-             response_model=List[Resource],
              description="Get the booked resource list from the intranet."
              )
 async def get_booked_resource_list(type: ResourceType = Path(description="Men `10` Women `20`\n"),
