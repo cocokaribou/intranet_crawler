@@ -12,8 +12,9 @@ import numpy as np
 
 from browser import Browser
 from models import Employee, Resource, ResourceResultCode
-from intranet_config import BASE_DOMAIN, SESSION_COOKIE_KEY, ID, PWD
+from intranet_config import BASE_DOMAIN, SESSION_COOKIE_KEY, ID, PWD, PION_WORLD, TAB_LIST
 import fb
+import re
 
 
 def login(usr_id, usr_pwd) -> str:
@@ -92,6 +93,8 @@ def scrap_my_employee_number(token: str) -> int:
     :param str token: session cookie value as a token
     :param int type: Men `10` / Women `20`
 """
+
+
 def scrap_booked_resources(token: str, type: int):
     with Browser(BASE_DOMAIN) as browser:
         browser.add_cookie(SESSION_COOKIE_KEY, token)
@@ -134,6 +137,8 @@ def scrap_booked_resources(token: str, type: int):
     :param list[int] selected_blocks: list of index of selected blocks. up to 3
     :return: [ResourceBookResult] code
 """
+
+
 def book_resources(token: str, type: int, selected_blocks: list[int]) -> ResourceResultCode:
     # prevent index out of range exception
     selected_blocks = [index for index in selected_blocks if 66 > index >= 0]
@@ -168,7 +173,8 @@ def book_resources(token: str, type: int, selected_blocks: list[int]) -> Resourc
                     rows[i].click()
 
             # prevent overbooking (6 blocks per day)
-            my_booked_list = [row for row in rows if row.get_attribute('value') == 'Y' and row.get_attribute('onclick') != 'return false;']
+            my_booked_list = [row for row in rows if
+                              row.get_attribute('value') == 'Y' and row.get_attribute('onclick') != 'return false;']
             print(len(my_booked_list))
             if len(my_booked_list) >= 6:
                 return ResourceResultCode.OVER_SIX
@@ -190,7 +196,7 @@ def book_resources(token: str, type: int, selected_blocks: list[int]) -> Resourc
 
             if browser.alert_text() == "처리되었습니다.":
                 browser.confirm_alert()
-                
+
             return ResourceResultCode.SUCCESS
 
         except Exception as e:
@@ -198,9 +204,59 @@ def book_resources(token: str, type: int, selected_blocks: list[int]) -> Resourc
             return ResourceResultCode.ERROR
 
 
+def format_text(x):
+    if x.name in ["h1", "h2", "h3", "h4"]:
+        result_string = f"<{x.text}>\n"
+    elif x.name == "li":
+        result_string = f"•{x.text.strip()}\n" if x.text else "•".join(x.find('span').text) + "\n"
+    elif x.name == "table":
+        markdown_table = "\n(table)\n"
+        headers = []
+        for th in x.find_all('th'):
+            headers.append(th.text.strip())
+        markdown_table += "| " + " | ".join(headers) + " |\n"
+        markdown_table += "| " + " | ".join(['---'] * len(headers)) + " |\n"
+
+        # Extracting row data
+        for tr in x.find('tbody').find_all('tr'):
+            row = [td.text.strip() for td in tr.find_all('td')]
+            markdown_table += "| " + " | ".join(row) + " |\n"
+
+        result_string = markdown_table
+    # elif x.name == "img":
+    #     result_string = x.get('alt') if x.get('alt') else ""
+    else:
+        result_string = x.text
+
+    if x.name not in ["table", "li"]:
+        result_string = re.sub(r'\s+', ' ', result_string).strip()
+
+    return result_string
+
+
+def scrap_pion_world():
+    result_string = ""
+    with Browser(PION_WORLD) as browser:
+        for i, tab in enumerate(TAB_LIST):
+            browser.load(PION_WORLD + tab)
+            soup = BeautifulSoup(browser.page_source(), "html.parser")
+            div = soup.find_all("div", attrs={'class': 'container'})[2]
+
+            matching_tags = div.find_all(
+                ["h1", "h2", "h3", "h4", "h5", "p", "span", "li", "dt", "dd", "a", "table"])
+            matching_tags += div.find_all("div", class_="about-author2")
+
+            rows = [format_text(x) for x in matching_tags]
+            result_string += " ".join(
+                rows) + "\n--------------------------------------------------------------------\n\n"
+
+        # result_string = re.sub(r'\s+', ' ', result_string).strip()
+        return result_string
+
+
 """
     for testing out chrome browser crawling feature.
 """
 if __name__ == "__main__":
     # scrap_employee_list(login(ID, PWD))
-    book_resources(login(ID, PWD), 20, [7, 8, 9])
+    scrap_pion_world()

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Path
 from fastapi.params import Path
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.responses import PlainTextResponse
 from typing_extensions import Annotated
 import crawler as crawler
 import fb
@@ -75,3 +76,10 @@ async def book_resource(selected_blocks: list[int],
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=code.value
         )
+
+
+@router.get("/pionworld",
+            tags=["PionWorld"],
+            response_class=PlainTextResponse)
+async def get_text_from_pion_world():
+    return crawler.scrap_pion_world()
