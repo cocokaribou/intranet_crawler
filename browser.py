@@ -5,9 +5,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 
 class Browser:
-    def __init__(self, base_domain, showScreen: bool = False):
-        self.base_domain = base_domain
-
+    def __init__(self, showScreen: bool = False):
         options = webdriver.ChromeOptions()
 
         if not showScreen:
@@ -26,7 +24,6 @@ class Browser:
 
         self.driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
 
-        self.driver.get(base_domain)
         self.driver.implicitly_wait(1)
 
     def __enter__(self):

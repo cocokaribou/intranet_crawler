@@ -18,7 +18,8 @@ import re
 
 
 def login(usr_id, usr_pwd) -> str:
-    with Browser(BASE_DOMAIN) as browser:
+    with Browser() as browser:
+        browser.load(BASE_DOMAIN)
         try:
             input_id = WebDriverWait(browser, 1).until(
                 EC.presence_of_element_located((By.ID, 'login_id'))
@@ -45,7 +46,8 @@ def login(usr_id, usr_pwd) -> str:
 
 
 def scrap_employee_list(token) -> list[Employee]:
-    with Browser(BASE_DOMAIN) as browser:
+    with Browser() as browser:
+        browser.load(BASE_DOMAIN)
         browser.add_cookie(SESSION_COOKIE_KEY, token)
 
         try:
@@ -75,7 +77,8 @@ def scrap_employee_list(token) -> list[Employee]:
 
 
 def scrap_my_employee_number(token: str) -> int:
-    with Browser(BASE_DOMAIN) as browser:
+    with Browser() as browser:
+        browser.load(BASE_DOMAIN)
         browser.add_cookie(SESSION_COOKIE_KEY, token)
 
         try:
@@ -96,7 +99,8 @@ def scrap_my_employee_number(token: str) -> int:
 
 
 def scrap_booked_resources(token: str, type: int):
-    with Browser(BASE_DOMAIN) as browser:
+    with Browser() as browser:
+        browser.load(BASE_DOMAIN)
         browser.add_cookie(SESSION_COOKIE_KEY, token)
 
         today = datetime.today().strftime('%Y-%m-%d')
@@ -143,14 +147,14 @@ def book_resources(token: str, type: int, selected_blocks: list[int]) -> Resourc
     # prevent index out of range exception
     selected_blocks = [index for index in selected_blocks if 66 > index >= 0]
 
-    print(selected_blocks)
     if len(selected_blocks) == 0:
         return ResourceResultCode.EMPTY_LIST
 
     if len(selected_blocks) > 3:
         return ResourceResultCode.OVER_THREE
 
-    with Browser(BASE_DOMAIN) as browser:
+    with Browser() as browser:
+        browser.load(BASE_DOMAIN)
         browser.add_cookie(SESSION_COOKIE_KEY, token)
 
         today = datetime.today().strftime('%Y-%m-%d')
@@ -176,7 +180,7 @@ def book_resources(token: str, type: int, selected_blocks: list[int]) -> Resourc
             my_booked_list = [row for row in rows if
                               row.get_attribute('value') == 'Y' and row.get_attribute('onclick') != 'return false;']
             print(len(my_booked_list))
-            if len(my_booked_list) >= 6:
+            if len(my_booked_list) > 6:
                 return ResourceResultCode.OVER_SIX
 
             # save changes
@@ -204,59 +208,59 @@ def book_resources(token: str, type: int, selected_blocks: list[int]) -> Resourc
             return ResourceResultCode.ERROR
 
 
-def format_text(x):
-    if x.name in ["h1", "h2", "h3", "h4"]:
-        result_string = f"<{x.text}>\n"
-    elif x.name == "li":
-        result_string = f"•{x.text.strip()}\n" if x.text else "•".join(x.find('span').text) + "\n"
-    elif x.name == "table":
-        markdown_table = "\n(table)\n"
-        headers = []
-        for th in x.find_all('th'):
-            headers.append(th.text.strip())
-        markdown_table += "| " + " | ".join(headers) + " |\n"
-        markdown_table += "| " + " | ".join(['---'] * len(headers)) + " |\n"
+def format_text(element):
+    text_content = element.text.strip()
 
-        # Extracting row data
-        for tr in x.find('tbody').find_all('tr'):
-            row = [td.text.strip() for td in tr.find_all('td')]
-            markdown_table += "| " + " | ".join(row) + " |\n"
-
-        result_string = markdown_table
-    # elif x.name == "img":
-    #     result_string = x.get('alt') if x.get('alt') else ""
+    if element.name in ["h1", "h2", "h3", "h4"]:
+        return f"<{text_content}>\n"
+    elif element.name == "li":
+        list_content = text_content or "•".join(element.find('span').text if element.find('span') else "")
+        return f"• {list_content}\n"
+    elif element.name == "table":
+        return format_table(element)
     else:
-        result_string = x.text
+        return re.sub(r'\s+', ' ', text_content) if element.name not in ["table", "li"] else text_content
 
-    if x.name not in ["table", "li"]:
-        result_string = re.sub(r'\s+', ' ', result_string).strip()
 
-    return result_string
+def format_table(table_element):
+    markdown_table = "\n(table)\n"
+    headers = [th.text.strip() for th in table_element.find_all('th')]
+    markdown_table += "| " + " | ".join(headers) + " |\n"
+    markdown_table += "| " + " | ".join(['---'] * len(headers)) + " |\n"
+
+    for tr in table_element.find('tbody').find_all('tr'):
+        row = [td.text.strip() for td in tr.find_all('td')]
+        markdown_table += "| " + " | ".join(row) + " |\n"
+
+    return markdown_table
 
 
 def scrap_pion_world():
-    result_string = ""
-    with Browser(PION_WORLD) as browser:
+    result_strings = []
+
+    with Browser() as browser:
         for i, tab in enumerate(TAB_LIST):
             browser.load(PION_WORLD + tab)
+            time.sleep(1)  # Wait for any dynamic content to load
+
+            is_work_tab = i in [20, 21, 22]
+
             soup = BeautifulSoup(browser.page_source(), "html.parser")
             div = soup.find_all("div", attrs={'class': 'container'})[2]
+            tag_list = ["h1", "h2", "h3", "h4", "h5", "p", "span"] + (
+                ["li", "dt", "dd", "a", "table"] if not is_work_tab else [])
 
-            matching_tags = div.find_all(
-                ["h1", "h2", "h3", "h4", "h5", "p", "span", "li", "dt", "dd", "a", "table"])
+            matching_tags = div.find_all(tag_list)
             matching_tags += div.find_all("div", class_="about-author2")
 
-            rows = [format_text(x) for x in matching_tags]
-            result_string += " ".join(
-                rows) + "\n--------------------------------------------------------------------\n\n"
+            formatted_text = [format_text(x) for x in matching_tags]
+            result_strings.append(" ".join(formatted_text) + "\n" + "-" * 60 + "\n\n")
 
-        # result_string = re.sub(r'\s+', ' ', result_string).strip()
-        return result_string
+    return "".join(result_strings)
 
 
 """
     for testing out chrome browser crawling feature.
 """
 if __name__ == "__main__":
-    # scrap_employee_list(login(ID, PWD))
     scrap_pion_world()
