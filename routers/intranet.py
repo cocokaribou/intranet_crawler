@@ -83,3 +83,10 @@ async def book_resource(selected_blocks: list[int],
             response_class=PlainTextResponse)
 async def get_text_from_pion_world():
     return crawler.scrap_pion_world()
+
+
+@router.get("/chatbot",
+            tags=["PionWorld"])
+async def chatbot(query: str):
+    # TODO chatbot api
+    return f"🤖 <( {query} )"

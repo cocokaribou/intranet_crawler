@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
+from fastapi.responses import FileResponse
+from pathlib import Path
 
 from routers.intranet import router as intranet_router
 
@@ -40,14 +42,10 @@ app.openapi = custom_openapi
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
-
-@app.get("/",
-         tags=["GET"],
-         summary="root",
-         description="api root")
-def root():
-    return "Welcome!"
-
+@app.get("/")
+def home():
+    home_path = Path("index.html")
+    return FileResponse(home_path)
 
 @app.get("/test",
          tags=["GET"],
