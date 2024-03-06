@@ -77,12 +77,15 @@ async def book_resource(selected_blocks: list[int],
             detail=code.value
         )
 
-
-@router.get("/pionworld",
-            tags=["PionWorld"],
-            response_class=PlainTextResponse)
-async def get_text_from_pion_world():
-    return crawler.scrap_pion_world()
+"""
+    no longer used as an api.
+    will run the scraping process in batch mode.
+"""
+# @router.get("/pionworld",
+#             tags=["PionWorld"],
+#             response_class=PlainTextResponse)
+# async def get_text_from_pion_world():
+#     return crawler.scrap_and_save_pion_world_text()
 
 
 @router.get("/chatbot",

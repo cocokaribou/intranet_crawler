@@ -7,3 +7,4 @@ google-chrome-stable-110.0.5481.177-1.x86_64.rpm
 intranet_config.py
 fb_config.py
 community-9bb06-firebase-adminsdk-astmj-ffdc3ed16b.json
+crawling_result/*
