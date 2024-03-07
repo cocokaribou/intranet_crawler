@@ -90,7 +90,7 @@
 
             // Send user message to the server and receive bot response
             try {
-                const response = await fetch(`http://localhost:8000/chatbot?query=${encodeURIComponent(userMessage)}`);
+                const response = await fetch(`http://13.209.23.94:8000/chatbot?query=${encodeURIComponent(userMessage)}`);
                 const data = await response.json();
                 const botMessage = data;
                 addMessage(botMessage, 'bot-message');
