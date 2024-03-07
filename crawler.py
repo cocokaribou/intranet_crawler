@@ -15,6 +15,10 @@ from models import Employee, Resource, ResourceResultCode
 from intranet_config import BASE_DOMAIN, SESSION_COOKIE_KEY, ID, PWD, PION_WORLD, TAB_LIST
 import fb
 import re
+import util
+
+import pandas as pd
+from io import StringIO
 
 
 def login(usr_id, usr_pwd) -> str:
@@ -57,6 +61,7 @@ def scrap_employee_list(token) -> list[Employee]:
             soup = BeautifulSoup(browser.page_source(), "html.parser")
             rows = soup.find('table', attrs={'bgcolor': '#CCCCCC'}).find('tbody').find_all('tr')
 
+            # TODO td, th 읽어와서 파싱하는 부분은 모두 pandas로 처리해도 될듯..
             result = [
                 Employee(
                     image=f"{BASE_DOMAIN}{row.find_next('img')['src']}",
@@ -223,25 +228,15 @@ def format_text(element):
 
 
 def format_table(table_element):
-    markdown_table = "\n(table)\n"
-    headers = [th.text.strip() for th in table_element.find_all('th')]
-    markdown_table += "| " + " | ".join(headers) + " |\n"
-    markdown_table += "| " + " | ".join(['---'] * len(headers)) + " |\n"
-
-    for tr in table_element.find('tbody').find_all('tr'):
-        row = [td.text.strip() for td in tr.find_all('td')]
-        markdown_table += "| " + " | ".join(row) + " |\n"
-
-    return markdown_table
+    return f"\n[table]\n{str(pd.read_html(StringIO(str(table_element))))}\n"
 
 
-def scrap_pion_world():
-    result_strings = []
-
+def scrap_and_save_pion_world_text():
     with Browser() as browser:
         for i, tab in enumerate(TAB_LIST):
             browser.load(PION_WORLD + tab)
-            time.sleep(1)  # Wait for any dynamic content to load
+            print("\r", f"scapping... {'■' * (i + 1)}{'□' * (len(TAB_LIST) - (i + 1))}", end="")
+            time.sleep(0.8)
 
             is_work_tab = i in [20, 21, 22]
 
@@ -254,13 +249,13 @@ def scrap_pion_world():
             matching_tags += div.find_all("div", class_="about-author2")
 
             formatted_text = [format_text(x) for x in matching_tags]
-            result_strings.append(" ".join(formatted_text) + "\n" + "-" * 60 + "\n\n")
+            directory = "crawling_result"
+            util.save_file(file_name=f"{str(i)}.txt", content="".join(formatted_text), directory=directory)
 
-    return "".join(result_strings)
-
+        print("\r", "!scrapping complete!", end="")
 
 """
-    for testing out chrome browser crawling feature.
+    batch
 """
 if __name__ == "__main__":
-    scrap_pion_world()
+    scrap_and_save_pion_world_text()

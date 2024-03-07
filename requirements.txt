@@ -7,3 +7,7 @@ python-multipart
 beautifulsoup4
 numpy
 firebase_admin
+pandas
+lxml
+sklearn
+torch
