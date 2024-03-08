@@ -92,4 +92,5 @@ async def book_resource(selected_blocks: list[int],
             tags=["PionWorld"])
 async def chatbot(query: str):
     # TODO chatbot api
+    print(query)
     return f"🤖 <( {query} )"
