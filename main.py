@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
 @app.get("/")
 def home():
-    home_path = Path("index.html")
+    home_path = Path("html/index.html")
     return FileResponse(home_path)
 
 @app.get("/test",
@@ -53,3 +53,19 @@ def home():
          description="test api")
 def test():
     return "test"
+
+
+# test htmls
+@app.get("/1")
+def page1():
+    return FileResponse(Path("html/1.html"))
+
+
+@app.get("/2")
+def page2():
+    return FileResponse(Path("html/2.html"))
+
+
+@app.get("/3")
+def page3():
+    return FileResponse(Path("html/3.html"))

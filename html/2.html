@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2</title>
+</head>
+<style>
+    html, body {
+        height: 100%;
+    }
+
+    html {
+        display: table;
+        margin: auto;
+    }
+    body {
+        display: table-cell;
+        vertical-align: middle;
+        background:#004400;
+    }
+    span {
+        font-size: 10em;
+        color:#ffffff;
+        font-weight:bold;
+    }
+    button {
+        width: 100px;
+        height: 30px;
+    }
+
+</style>
+<body>
+
+<span>2</span>
+<br>
+<button id="click">click!</button>
+
+<script>
+    const clickButton = document.getElementById('click');
+
+    // Function to send user message and receive bot response
+    async function sendMessage() {
+        window.location="3.html"
+    }
+
+    clickButton.addEventListener('click', sendMessage);
+</script>
+
+</html>
