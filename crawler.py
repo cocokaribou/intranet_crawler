@@ -235,7 +235,7 @@ def scrap_and_save_pion_world_text():
     with Browser() as browser:
         for i, tab in enumerate(TAB_LIST):
             browser.load(PION_WORLD + tab)
-            print("\r", f"scapping... {'■' * (i + 1)}{'□' * (len(TAB_LIST) - (i + 1))}", end="")
+            print("\r", f"scraping... {'■' * (i + 1)}{'□' * (len(TAB_LIST) - (i + 1))}", end="")
             time.sleep(0.8)
 
             is_work_tab = i in [20, 21, 22]
@@ -252,7 +252,7 @@ def scrap_and_save_pion_world_text():
             directory = "crawling_result"
             util.save_file(file_name=f"{str(i)}.txt", content="".join(formatted_text), directory=directory)
 
-        print("\r", "!scrapping complete!", end="")
+        print("\r", "!scraping complete!", end="")
 
 """
     batch

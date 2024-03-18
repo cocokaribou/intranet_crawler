@@ -8,3 +8,4 @@ intranet_config.py
 fb_config.py
 community-9bb06-firebase-adminsdk-astmj-ffdc3ed16b.json
 crawling_result/*
+db_client/*
