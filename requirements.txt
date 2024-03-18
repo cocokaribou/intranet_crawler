@@ -9,5 +9,5 @@ numpy
 firebase_admin
 pandas
 lxml
-sklearn
+scikit-learn
 torch
