@@ -24,9 +24,6 @@ app.add_middleware(
 )
 app.include_router(intranet_router)
 
-app.mount("/", StaticFiles(directory="html", html=True))  # html 파일 경로 리턴
-
-
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
@@ -50,3 +47,27 @@ if __name__ == "__main__":
 def home():
     home_path = Path("html/index.html")
     return FileResponse(home_path)
+
+
+@app.get("/test",
+         tags=["GET"],
+         summary="test",
+         description="test api")
+def test():
+    return "test"
+
+
+# test htmls
+@app.get("/1")
+def page1():
+    return FileResponse(Path("html/1.html"))
+
+
+@app.get("/2")
+def page2():
+    return FileResponse(Path("html/2.html"))
+
+
+@app.get("/3")
+def page3():
+    return FileResponse(Path("html/3.html"))
