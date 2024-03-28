@@ -91,6 +91,6 @@ async def book_resource(selected_blocks: list[int],
 @router.get("/chatbot",
             tags=["PionWorld"])
 async def chatbot(query: str):
-    # TODO chatbot api
+
     print(query)
     return f"🤖 <( {query} )"
