@@ -71,3 +71,7 @@ def page2():
 @app.get("/3")
 def page3():
     return FileResponse(Path("html/3.html"))
+
+@app.get("/test_json")
+def test_json():
+    return FileResponse(Path('test.json'))

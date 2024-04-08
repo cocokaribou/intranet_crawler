@@ -1,0 +1,103 @@
+{
+  "goods_list": [
+    {
+      "goods_no": "G001",
+      "goods_nm": "커피 머그잔",
+      "brand_nm": "커피월드",
+      "cust_sale_price": 5000,
+      "sale_rate": 0,
+      "link_url": "https://example.com/coffee_mug",
+      "image_url": "",
+      "no_image_url": "https://example.com/no_image",
+      "sale_price": 7000
+    },
+    {
+      "goods_no": "G002",
+      "goods_nm": "천연 솜털 이불",
+      "brand_nm": "편안가구",
+      "cust_sale_price": 45000,
+      "sale_rate": 10,
+      "link_url": "https://example.com/comfortable_bedding",
+      "image_url": "",
+      "no_image_url": "https://example.com/no_image",
+      "sale_price": 50000
+    },
+    {
+      "goods_no": "G003",
+      "goods_nm": "가죽 지갑",
+      "brand_nm": "LuxuryLeather",
+      "cust_sale_price": 30000,
+      "sale_rate": 0,
+      "link_url": "https://example.com/luxury_leather_wallet",
+      "image_url": "",
+      "no_image_url": "https://example.com/no_image",
+      "sale_price": 40000
+    },
+    {
+      "goods_no": "G004",
+      "goods_nm": "프리미엄 차 세트",
+      "brand_nm": "TeaHeaven",
+      "cust_sale_price": 25000,
+      "sale_rate": 20,
+      "link_url": "https://example.com/premium_tea_set",
+      "image_url": "",
+      "no_image_url": "https://example.com/no_image",
+      "sale_price": 30000
+    },
+    {
+      "goods_no": "G005",
+      "goods_nm": "스마트폰 케이스",
+      "brand_nm": "TechGadgets",
+      "cust_sale_price": 15000,
+      "sale_rate": 5,
+      "link_url": "https://example.com/smartphone_case",
+      "image_url": "",
+      "no_image_url": "https://example.com/no_image",
+      "sale_price": 18000
+    },
+    {
+      "goods_no": "G006",
+      "goods_nm": "테니스 라켓",
+      "brand_nm": "ProSports",
+      "cust_sale_price": 80000,
+      "sale_rate": 0,
+      "link_url": "https://example.com/tennis_racket",
+      "image_url": "",
+      "no_image_url": "https://example.com/no_image",
+      "sale_price": 90000
+    },
+    {
+      "goods_no": "G007",
+      "goods_nm": "스포츠 캡",
+      "brand_nm": "ActiveWear",
+      "cust_sale_price": 20000,
+      "sale_rate": 15,
+      "link_url": "https://example.com/sports_cap",
+      "image_url": "",
+      "no_image_url": "https://example.com/no_image",
+      "sale_price": 23000
+    },
+    {
+      "goods_no": "G008",
+      "goods_nm": "모자",
+      "brand_nm": "FashionTrend",
+      "cust_sale_price": 25000,
+      "sale_rate": 0,
+      "link_url": "https://example.com/hat",
+      "image_url": "",
+      "no_image_url": "https://example.com/no_image",
+      "sale_price": 30000
+    },
+    {
+      "goods_no": "G009",
+      "goods_nm": "레더 장갑",
+      "brand_nm": "AdventureGear",
+      "cust_sale_price": 35000,
+      "sale_rate": 10,
+      "link_url": "https://example.com/leather_gloves",
+      "image_url": "",
+      "no_image_url": "https://example.com/no_image",
+      "sale_price": 40000
+    }
+  ]
+}
