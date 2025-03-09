@@ -4,7 +4,7 @@
 import os
 
 from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
+from scikit-learn.metrics.pairwise import cosine_similarity
 import torch
 
 def text_to_list(text):
